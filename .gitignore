@@ -3,3 +3,8 @@ dist
 *.pyc
 .DS_Store
 MANIFEST
+bin/
+lib/
+lib64
+include/
+*.egg-info/
