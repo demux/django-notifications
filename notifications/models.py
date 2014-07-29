@@ -1,23 +1,14 @@
-import datetime
+
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.db import models
-from django.utils.timezone import utc
-from .utils import id2slug
+from django.utils.timezone import now
+from .utils import id2slug, py_str
 
 from .signals import notify
 
 from model_utils import managers, Choices
-
-now = datetime.datetime.now
-if getattr(settings, 'USE_TZ'):
-    try:
-        from django.utils import timezone
-        now = timezone.now
-    except ImportError:
-        pass
-
 
 class NotificationQuerySet(models.query.QuerySet):
     
@@ -109,7 +100,9 @@ class Notification(models.Model):
     action_object = generic.GenericForeignKey('action_object_content_type',
         'action_object_object_id')
 
-    timestamp = models.DateTimeField(default=now)
+    timestamp = models.DateTimeField(
+        auto_now_add=True,
+        )
 
     public = models.BooleanField(default=True)
     
@@ -182,7 +175,7 @@ def notify_handler(verb, **kwargs):
         recipient = recipient,
         actor_content_type=ContentType.objects.get_for_model(actor),
         actor_object_id=actor.pk,
-        verb=str(verb),
+        verb=py_str(verb),
         public=bool(kwargs.pop('public', True)),
         description=kwargs.pop('description', None),
         timestamp=kwargs.pop('timestamp', now())
